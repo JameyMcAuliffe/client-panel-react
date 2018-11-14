@@ -1,16 +1,31 @@
 import React, {Component} from 'react';
 import {Link} from 'react-router-dom';
+import { connect } from 'react-redux';
+import { compose } from 'redux';
+import { firestoreConnect } from 'react-redux-firebase';
 
 class Clients extends Component {
+	state = {
+		totalOwed: null
+	};
+
+	static getDerivedStateFromProps(props, state) {
+		const { clients } = props;
+
+		if(clients) {
+			const total = clients.reduce((total, client) => {
+				return total + parseFloat(client.balance.toString());
+			}, 0);
+
+			return {totalOwed: total};
+		}
+
+		return null;
+	}
+
 	render() {
-		const clients = [{
-			id: 123,
-			firstName: 'Yo',
-			lastName: 'Ho',
-			email: 'y@g.com',
-			phone: '555-555-5555',
-			balance: '50'
-		}];
+		const { clients } = this.props;
+		const { totalOwed } = this.state;
 
 		if(clients) {
 			return (
@@ -22,7 +37,12 @@ class Clients extends Component {
 								<i className="fas fa-users"/> Clients{' '}
 							</h2>
 						</div>
-						<div className="col-md-6"></div>
+						<div className="col-md-6">
+							<h5 className="text-right text-secondary">Total Owed{' '}
+							<span className="text-primary">
+								${parseFloat(totalOwed).toFixed(2)}
+							</span></h5>
+						</div>
 					</div>
 					<table className="table table-striped">
 						<thead className="thead-inverse">
@@ -51,9 +71,15 @@ class Clients extends Component {
 				</div>
 			)
 		} else {
-			return <h1>Loading</h1>
+			return <h1>Loading...</h1>
 		}
 	}
 }
 
-export default Clients;
+export default compose(
+	firestoreConnect([{ collection: 'clients' }]),
+	connect((state, props) => ({
+		//put clients data from firestore into prop called clients
+		clients: state.firestore.ordered.clients
+	}))
+)(Clients);
