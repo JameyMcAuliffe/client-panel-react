@@ -28,7 +28,7 @@ class AddClient extends Component {
 		//firestore is in props from firestoreConnect
 		const { firestore, history } = this.props;
 
-		if(newClient.balance = '') {
+		if(newClient.balance === '') {
 			newClient.balance = 0;
 		}
 
